@@ -26,10 +26,10 @@ use crate::tracker::Tracker;
 ///
 /// Refer to the [API endpoint documentation](crate::servers::apis::v1::context::torrent#get-a-torrent)
 /// for more information about this endpoint.
-pub async fn get_torrent_handler(State(tracker): State<Arc<Tracker>>, Path(info_hash): Path<InfoHashParam>) -> Response {
+pub fn get_torrent_handler(State(tracker): State<Arc<Tracker>>, Path(info_hash): Path<InfoHashParam>) -> Response {
     match InfoHash::from_str(&info_hash.0) {
         Err(_) => invalid_info_hash_param_response(&info_hash.0),
-        Ok(info_hash) => match get_torrent_info(tracker.clone(), &info_hash).await {
+        Ok(info_hash) => match get_torrent_info(tracker.clone(), &info_hash) {
             Some(info) => torrent_info_response(info).into_response(),
             None => torrent_not_known_response(),
         },
@@ -56,7 +56,7 @@ pub struct PaginationParams {
 ///
 /// Refer to the [API endpoint documentation](crate::servers::apis::v1::context::torrent#list-torrents)
 /// for more information about this endpoint.
-pub async fn get_torrents_handler(
+pub fn get_torrents_handler(
     State(tracker): State<Arc<Tracker>>,
     pagination: Query<PaginationParams>,
 ) -> Json<Vec<ListItem>> {
@@ -67,7 +67,6 @@ pub async fn get_torrents_handler(
             tracker.clone(),
             &Pagination::new_with_options(pagination.0.offset, pagination.0.limit),
         )
-        .await,
     )
 }
 
