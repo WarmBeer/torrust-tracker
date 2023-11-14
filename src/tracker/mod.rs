@@ -733,20 +733,23 @@ impl Tracker {
             entry.clone()
         };
 
-        let mut torrent_entry_lock = torrent_entry.lock().unwrap();
-
-        let stats_updated = torrent_entry_lock.update_peer(peer);
+        let (stats_updated, stats) = {
+            let mut torrent_entry_lock = torrent_entry.lock().unwrap();
+            let stats_updated = torrent_entry_lock.update_peer(peer);
+            let stats = torrent_entry_lock.get_stats();
+            (stats_updated, stats)
+        };
 
         // todo: move this action to a separate worker
         if self.config.persistent_torrent_completed_stat && stats_updated {
             drop(
                 self.database
-                    .save_persistent_torrent(info_hash, torrent_entry_lock.completed)
+                    .save_persistent_torrent(info_hash, stats.1)
                     .await,
             );
         }
 
-        let (seeders, completed, leechers) = torrent_entry_lock.get_stats();
+        let (seeders, completed, leechers) = stats;
 
         torrent::SwarmStats {
             completed,
@@ -800,7 +803,7 @@ impl Tracker {
     ///
     /// # Context: Tracker
     pub fn cleanup_torrents(&self) {
-        let mut torrents_lock = self.torrents.get_torrents();
+        let mut torrents_lock = self.torrents.get_torrents_mut();
 
         // If we don't need to remove torrents we will use the faster iter
         if self.config.remove_peerless_torrents {
