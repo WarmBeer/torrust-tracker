@@ -77,11 +77,7 @@ serde_urlencoded = "0"
 torrust-tracker-test-helpers = { version = "3.0.0-alpha.12-develop", path = "packages/test-helpers" }
 
 [workspace]
-members = ["contrib/bencode", "packages/configuration", "packages/located-error", "packages/primitives", "packages/test-helpers"]
-
-[[bench]]
-name = "update_torrent"
-harness = false
+members = ["contrib/bencode", "packages/configuration", "packages/located-error", "packages/primitives", "packages/test-helpers", "packages/torrent-repository-benchmarks"]
 
 [profile.dev]
 debug = 1

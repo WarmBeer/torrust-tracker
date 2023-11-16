@@ -31,7 +31,7 @@ pub struct Running {
 impl<S> TestEnvironment<S> {
     /// Add a torrent to the tracker
     pub async fn add_torrent_peer(&self, info_hash: &InfoHash, peer: &Peer) {
-        self.tracker.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
+        self.tracker.update_torrent_with_peer_and_get_stats(info_hash, peer);
     }
 }
 

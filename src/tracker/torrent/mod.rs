@@ -28,8 +28,8 @@
 //! Peer that don not have a full copy of the torrent data are called "leechers".
 //!
 //! > **NOTICE**: that both [`SwarmMetadata`] and [`SwarmStats`] contain the same information. [`SwarmMetadata`] is using the names used on [BEP 48: Tracker Protocol Extension: Scrape](https://www.bittorrent.org/beps/bep_0048.html).
-use std::collections::BTreeMap;
-use std::sync::{Arc, Mutex, RwLockReadGuard, RwLockWriteGuard};
+pub mod repository;
+
 use std::time::Duration;
 
 use aquatic_udp_protocol::AnnounceEvent;
@@ -37,29 +37,7 @@ use serde::{Deserialize, Serialize};
 
 use super::peer::{self, Peer};
 use crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS;
-use crate::shared::bit_torrent::info_hash::InfoHash;
 use crate::shared::clock::{Current, TimeNow};
-
-/// Structure that holds all torrents.
-pub struct Repository {
-    torrents: std::sync::RwLock<std::collections::BTreeMap<InfoHash, Arc<std::sync::Mutex<Entry>>>>,
-}
-
-impl Repository {
-    pub fn new() -> Self {
-        Self {
-            torrents: std::sync::RwLock::new(std::collections::BTreeMap::new())
-        }
-    }
-
-    pub fn get_torrents(&self) -> RwLockReadGuard<'_, BTreeMap<InfoHash, Arc<Mutex<Entry>>>> {
-        self.torrents.read().unwrap()
-    }
-
-    pub fn get_torrents_mut(&self) -> RwLockWriteGuard<'_, BTreeMap<InfoHash, Arc<Mutex<Entry>>>> {
-        self.torrents.write().unwrap()
-    }
-}
 
 /// A data structure containing all the information about a torrent in the tracker.
 ///

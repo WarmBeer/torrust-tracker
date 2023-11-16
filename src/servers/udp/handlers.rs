@@ -138,7 +138,7 @@ pub async fn handle_announce(
 
     let mut peer = peer_builder::from_request(&wrapped_announce_request, &remote_client_ip);
 
-    let response = tracker.announce(&info_hash, &mut peer, &remote_client_ip).await;
+    let response = tracker.announce(&info_hash, &mut peer, &remote_client_ip);
 
     match remote_client_ip {
         IpAddr::V4(_) => {
@@ -596,7 +596,7 @@ mod tests {
 
                 handle_announce(remote_addr, &request, &tracker).await.unwrap();
 
-                let peers = tracker.get_all_torrent_peers(&info_hash.0.into()).await;
+                let peers = tracker.get_all_torrent_peers(&info_hash.0.into());
 
                 let expected_peer = TorrentPeerBuilder::default()
                     .with_peer_id(peer::Id(peer_id.0))
@@ -657,7 +657,7 @@ mod tests {
 
                 handle_announce(remote_addr, &request, &tracker).await.unwrap();
 
-                let peers = tracker.get_all_torrent_peers(&info_hash.0.into()).await;
+                let peers = tracker.get_all_torrent_peers(&info_hash.0.into());
 
                 assert_eq!(peers[0].peer_addr, SocketAddr::new(IpAddr::V4(remote_client_ip), client_port));
             }
@@ -676,8 +676,7 @@ mod tests {
                     .into();
 
                 tracker
-                    .update_torrent_with_peer_and_get_stats(&info_hash.0.into(), &peer_using_ipv6)
-                    .await;
+                    .update_torrent_with_peer_and_get_stats(&info_hash.0.into(), &peer_using_ipv6);
             }
 
             async fn announce_a_new_peer_using_ipv4(tracker: Arc<tracker::Tracker>) -> Response {
@@ -761,7 +760,7 @@ mod tests {
 
                     handle_announce(remote_addr, &request, &tracker).await.unwrap();
 
-                    let peers = tracker.get_all_torrent_peers(&info_hash.0.into()).await;
+                    let peers = tracker.get_all_torrent_peers(&info_hash.0.into());
 
                     let external_ip_in_tracker_configuration =
                         tracker.config.external_ip.clone().unwrap().parse::<Ipv4Addr>().unwrap();
@@ -818,7 +817,7 @@ mod tests {
 
                 handle_announce(remote_addr, &request, &tracker).await.unwrap();
 
-                let peers = tracker.get_all_torrent_peers(&info_hash.0.into()).await;
+                let peers = tracker.get_all_torrent_peers(&info_hash.0.into());
 
                 let expected_peer = TorrentPeerBuilder::default()
                     .with_peer_id(peer::Id(peer_id.0))
@@ -882,7 +881,7 @@ mod tests {
 
                 handle_announce(remote_addr, &request, &tracker).await.unwrap();
 
-                let peers = tracker.get_all_torrent_peers(&info_hash.0.into()).await;
+                let peers = tracker.get_all_torrent_peers(&info_hash.0.into());
 
                 // When using IPv6 the tracker converts the remote client ip into a IPv4 address
                 assert_eq!(peers[0].peer_addr, SocketAddr::new(IpAddr::V6(remote_client_ip), client_port));
@@ -901,8 +900,7 @@ mod tests {
                     .into();
 
                 tracker
-                    .update_torrent_with_peer_and_get_stats(&info_hash.0.into(), &peer_using_ipv4)
-                    .await;
+                    .update_torrent_with_peer_and_get_stats(&info_hash.0.into(), &peer_using_ipv4);
             }
 
             async fn announce_a_new_peer_using_ipv6(tracker: Arc<tracker::Tracker>) -> Response {
@@ -999,7 +997,7 @@ mod tests {
 
                     handle_announce(remote_addr, &request, &tracker).await.unwrap();
 
-                    let peers = tracker.get_all_torrent_peers(&info_hash.0.into()).await;
+                    let peers = tracker.get_all_torrent_peers(&info_hash.0.into());
 
                     let _external_ip_in_tracker_configuration =
                         tracker.config.external_ip.clone().unwrap().parse::<Ipv6Addr>().unwrap();
@@ -1074,8 +1072,7 @@ mod tests {
                 .into();
 
             tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash.0.into(), &peer)
-                .await;
+                .update_torrent_with_peer_and_get_stats(&info_hash.0.into(), &peer);
         }
 
         fn build_scrape_request(remote_addr: &SocketAddr, info_hash: &InfoHash) -> ScrapeRequest {

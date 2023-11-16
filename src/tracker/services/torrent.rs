@@ -183,8 +183,7 @@ mod tests {
             let torrent_info = get_torrent_info(
                 tracker.clone(),
                 &InfoHash::from_str("0b3aea4adc213ce32295be85d3883a63bca25446").unwrap(),
-            )
-            .await;
+            );
 
             assert!(torrent_info.is_none());
         }
@@ -196,10 +195,9 @@ mod tests {
             let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
             let info_hash = InfoHash::from_str(&hash).unwrap();
             tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash, &sample_peer())
-                .await;
+                .update_torrent_with_peer_and_get_stats(&info_hash, &sample_peer());
 
-            let torrent_info = get_torrent_info(tracker.clone(), &info_hash).await.unwrap();
+            let torrent_info = get_torrent_info(tracker.clone(), &info_hash).unwrap();
 
             assert_eq!(
                 torrent_info,
@@ -235,7 +233,7 @@ mod tests {
         async fn should_return_an_empty_result_if_the_tracker_does_not_have_any_torrent() {
             let tracker = Arc::new(tracker_factory(tracker_configuration()));
 
-            let torrents = get_torrents(tracker.clone(), &Pagination::default()).await;
+            let torrents = get_torrents(tracker.clone(), &Pagination::default());
 
             assert_eq!(torrents, vec![]);
         }
@@ -248,10 +246,9 @@ mod tests {
             let info_hash = InfoHash::from_str(&hash).unwrap();
 
             tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash, &sample_peer())
-                .await;
+                .update_torrent_with_peer_and_get_stats(&info_hash, &sample_peer());
 
-            let torrents = get_torrents(tracker.clone(), &Pagination::default()).await;
+            let torrents = get_torrents(tracker.clone(), &Pagination::default());
 
             assert_eq!(
                 torrents,
@@ -274,16 +271,14 @@ mod tests {
             let info_hash2 = InfoHash::from_str(&hash2).unwrap();
 
             tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash1, &sample_peer())
-                .await;
+                .update_torrent_with_peer_and_get_stats(&info_hash1, &sample_peer());
             tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash2, &sample_peer())
-                .await;
+                .update_torrent_with_peer_and_get_stats(&info_hash2, &sample_peer());
 
             let offset = 0;
             let limit = 1;
 
-            let torrents = get_torrents(tracker.clone(), &Pagination::new(offset, limit)).await;
+            let torrents = get_torrents(tracker.clone(), &Pagination::new(offset, limit));
 
             assert_eq!(torrents.len(), 1);
         }
@@ -298,16 +293,14 @@ mod tests {
             let info_hash2 = InfoHash::from_str(&hash2).unwrap();
 
             tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash1, &sample_peer())
-                .await;
+                .update_torrent_with_peer_and_get_stats(&info_hash1, &sample_peer());
             tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash2, &sample_peer())
-                .await;
+                .update_torrent_with_peer_and_get_stats(&info_hash2, &sample_peer());
 
             let offset = 1;
             let limit = 4000;
 
-            let torrents = get_torrents(tracker.clone(), &Pagination::new(offset, limit)).await;
+            let torrents = get_torrents(tracker.clone(), &Pagination::new(offset, limit));
 
             assert_eq!(torrents.len(), 1);
             assert_eq!(
@@ -328,16 +321,14 @@ mod tests {
             let hash1 = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
             let info_hash1 = InfoHash::from_str(&hash1).unwrap();
             tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash1, &sample_peer())
-                .await;
+                .update_torrent_with_peer_and_get_stats(&info_hash1, &sample_peer());
 
             let hash2 = "03840548643af2a7b63a9f5cbca348bc7150ca3a".to_owned();
             let info_hash2 = InfoHash::from_str(&hash2).unwrap();
             tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash2, &sample_peer())
-                .await;
+                .update_torrent_with_peer_and_get_stats(&info_hash2, &sample_peer());
 
-            let torrents = get_torrents(tracker.clone(), &Pagination::default()).await;
+            let torrents = get_torrents(tracker.clone(), &Pagination::default());
 
             assert_eq!(
                 torrents,
