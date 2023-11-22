@@ -8,7 +8,7 @@ use futures::stream::FuturesUnordered;
 use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
 use torrust_tracker::shared::clock::DurationSinceUnixEpoch;
 use torrust_tracker::tracker::peer::{Id, Peer};
-use torrust_tracker::tracker::torrent::repository::{TRepositorySync, RepositorySync, RepositoryAsync, TRepositoryAsync, RepositorySyncOld};
+use torrust_tracker::tracker::torrent::repository::{TRepositorySync, RepositorySync, RepositoryAsync, TRepositoryAsync, RepositorySyncOld, RepositoryAsyncSync};
 
 /// Simple program to benchmark torrust-tracker
 #[derive(Parser, Debug)]
@@ -47,6 +47,13 @@ fn main() {
         println!("{}: Avg/AdjAvg: {:?}", "async_update_one_torrent_in_parallel", rt.block_on(async_update_one_torrent_in_parallel::<RepositoryAsync>(&rt, 10)));
         println!("{}: Avg/AdjAvg: {:?}", "async_add_multiple_torrents_in_parallel", rt.block_on(async_add_multiple_torrents_in_parallel::<RepositoryAsync>(&rt, 10)));
         println!("{}: Avg/AdjAvg: {:?}", "async_update_multiple_torrents_in_parallel", rt.block_on(async_update_multiple_torrents_in_parallel::<RepositoryAsync>(&rt, 10)));
+
+        println!("");
+
+        println!("{}: Avg/AdjAvg: {:?}", "async_sync_add_one_torrent", rt.block_on(async_add_one_torrent::<RepositoryAsyncSync>(1_000_000)));
+        println!("{}: Avg/AdjAvg: {:?}", "async_sync_update_one_torrent_in_parallel", rt.block_on(async_update_one_torrent_in_parallel::<RepositoryAsyncSync>(&rt, 10)));
+        println!("{}: Avg/AdjAvg: {:?}", "async_sync_add_multiple_torrents_in_parallel", rt.block_on(async_add_multiple_torrents_in_parallel::<RepositoryAsyncSync>(&rt, 10)));
+        println!("{}: Avg/AdjAvg: {:?}", "async_sync_update_multiple_torrents_in_parallel", rt.block_on(async_update_multiple_torrents_in_parallel::<RepositoryAsyncSync>(&rt, 10)));
 
         println!("");
 
