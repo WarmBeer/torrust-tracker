@@ -138,7 +138,7 @@ pub async fn handle_announce(
 
     let mut peer = peer_builder::from_request(&wrapped_announce_request, &remote_client_ip);
 
-    let response = tracker.announce(&info_hash, &mut peer, &remote_client_ip);
+    let response = tracker.announce(&info_hash, &mut peer, &remote_client_ip).await;
 
     match remote_client_ip {
         IpAddr::V4(_) => {

@@ -92,8 +92,8 @@ impl Default for Pagination {
 }
 
 /// It returns all the information the tracker has about one torrent in a [Info] struct.
-pub fn get_torrent_info(tracker: Arc<Tracker>, info_hash: &InfoHash) -> Option<Info> {
-    let db = tracker.torrents.get_torrents();
+pub async fn get_torrent_info(tracker: Arc<Tracker>, info_hash: &InfoHash) -> Option<Info> {
+    let db = tracker.torrents.get_torrents().await;
 
     let torrent_entry_option = db.get(info_hash);
 
@@ -119,8 +119,8 @@ pub fn get_torrent_info(tracker: Arc<Tracker>, info_hash: &InfoHash) -> Option<I
 }
 
 /// It returns all the information the tracker has about multiple torrents in a [`BasicInfo`] struct, excluding the peer list.
-pub fn get_torrents(tracker: Arc<Tracker>, pagination: &Pagination) -> Vec<BasicInfo> {
-    let db = tracker.torrents.get_torrents();
+pub async fn get_torrents(tracker: Arc<Tracker>, pagination: &Pagination) -> Vec<BasicInfo> {
+    let db = tracker.torrents.get_torrents().await;
 
     let mut basic_infos: Vec<BasicInfo> = vec![];
 

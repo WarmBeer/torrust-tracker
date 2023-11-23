@@ -29,7 +29,7 @@ use crate::tracker::Tracker;
 pub async fn get_torrent_handler(State(tracker): State<Arc<Tracker>>, Path(info_hash): Path<InfoHashParam>) -> Response {
     match InfoHash::from_str(&info_hash.0) {
         Err(_) => invalid_info_hash_param_response(&info_hash.0),
-        Ok(info_hash) => match get_torrent_info(tracker.clone(), &info_hash) {
+        Ok(info_hash) => match get_torrent_info(tracker.clone(), &info_hash).await {
             Some(info) => torrent_info_response(info).into_response(),
             None => torrent_not_known_response(),
         },
@@ -66,7 +66,7 @@ pub async fn get_torrents_handler(
         &get_torrents(
             tracker.clone(),
             &Pagination::new_with_options(pagination.0.offset, pagination.0.limit),
-        )
+        ).await
     )
 }
 

@@ -456,7 +456,7 @@ use self::peer::Peer;
 use crate::shared::bit_torrent::info_hash::InfoHash;
 use crate::tracker::databases::Database;
 use crate::tracker::torrent::{SwarmMetadata, SwarmStats};
-use crate::tracker::torrent::repository::{TRepositorySync, RepositorySync};
+use crate::tracker::torrent::repository::{RepositoryAsyncSync, TRepositoryAsync};
 
 /// The domain layer tracker service.
 ///
@@ -476,7 +476,7 @@ pub struct Tracker {
     mode: TrackerMode,
     keys: tokio::sync::RwLock<std::collections::HashMap<Key, auth::ExpiringKey>>,
     whitelist: tokio::sync::RwLock<std::collections::HashSet<InfoHash>>,
-    pub torrents: Arc<RepositorySync>,
+    pub torrents: Arc<RepositoryAsyncSync>,
     stats_event_sender: Option<Box<dyn statistics::EventSender>>,
     stats_repository: statistics::Repo,
 }
@@ -571,7 +571,7 @@ impl Tracker {
             mode,
             keys: tokio::sync::RwLock::new(std::collections::HashMap::new()),
             whitelist: tokio::sync::RwLock::new(std::collections::HashSet::new()),
-            torrents: Arc::new(RepositorySync::new()),
+            torrents: Arc::new(RepositoryAsyncSync::new()),
             stats_event_sender,
             stats_repository,
             database,
@@ -603,7 +603,7 @@ impl Tracker {
     /// # Context: Tracker
     ///
     /// BEP 03: [The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html).
-    pub fn announce(&self, info_hash: &InfoHash, peer: &mut Peer, remote_client_ip: &IpAddr) -> AnnounceData {
+    pub async fn announce(&self, info_hash: &InfoHash, peer: &mut Peer, remote_client_ip: &IpAddr) -> AnnounceData {
         // code-review: maybe instead of mutating the peer we could just return
         // a tuple with the new peer and the announce data: (Peer, AnnounceData).
         // It could even be a different struct: `StoredPeer` or `PublicPeer`.
@@ -621,9 +621,9 @@ impl Tracker {
 
         peer.change_ip(&assign_ip_address_to_peer(remote_client_ip, self.config.get_ext_ip()));
 
-        let swarm_stats = self.update_torrent_with_peer_and_get_stats(info_hash, peer);
+        let swarm_stats = self.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
 
-        let peers = self.get_peers_for_peer(info_hash, peer);
+        let peers = self.get_peers_for_peer(info_hash, peer).await;
 
         AnnounceData {
             peers,
@@ -643,7 +643,7 @@ impl Tracker {
 
         for info_hash in info_hashes {
             let swarm_metadata = match self.authorize(info_hash).await {
-                Ok(()) => self.get_swarm_metadata(info_hash),
+                Ok(()) => self.get_swarm_metadata(info_hash).await,
                 Err(_) => SwarmMetadata::zeroed(),
             };
             scrape_data.add_file(info_hash, swarm_metadata);
@@ -653,8 +653,8 @@ impl Tracker {
     }
 
     /// It returns the data for a `scrape` response.
-    fn get_swarm_metadata(&self, info_hash: &InfoHash) -> SwarmMetadata {
-        let torrents = self.torrents.get_torrents();
+    async fn get_swarm_metadata(&self, info_hash: &InfoHash) -> SwarmMetadata {
+        let torrents = self.torrents.get_torrents().await;
 
         match torrents.get(info_hash) {
             Some(torrent_entry) => torrent_entry.lock().unwrap().get_swarm_metadata(),
@@ -673,7 +673,7 @@ impl Tracker {
     pub async fn load_torrents_from_database(&self) -> Result<(), databases::error::Error> {
         let persistent_torrents = self.database.load_persistent_torrents().await?;
 
-        let mut torrents = self.torrents.get_torrents_mut();
+        let mut torrents = self.torrents.get_torrents_mut().await;
 
         for (info_hash, completed) in persistent_torrents {
             // Skip if torrent entry already exists
@@ -692,8 +692,8 @@ impl Tracker {
         Ok(())
     }
 
-    fn get_peers_for_peer(&self, info_hash: &InfoHash, peer: &Peer) -> Vec<peer::Peer> {
-        let read_lock = self.torrents.get_torrents();
+    async fn get_peers_for_peer(&self, info_hash: &InfoHash, peer: &Peer) -> Vec<peer::Peer> {
+        let read_lock = self.torrents.get_torrents().await;
 
         match read_lock.get(info_hash) {
             None => vec![],
@@ -704,8 +704,8 @@ impl Tracker {
     /// # Context: Tracker
     ///
     /// Get all torrent peers for a given torrent
-    pub fn get_all_torrent_peers(&self, info_hash: &InfoHash) -> Vec<peer::Peer> {
-        let read_lock = self.torrents.get_torrents();
+    pub async fn get_all_torrent_peers(&self, info_hash: &InfoHash) -> Vec<peer::Peer> {
+        let read_lock = self.torrents.get_torrents().await;
 
         match read_lock.get(info_hash) {
             None => vec![],
@@ -718,11 +718,11 @@ impl Tracker {
     /// needed for a `announce` request response.
     ///
     /// # Context: Tracker
-    pub fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> torrent::SwarmStats {
+    pub async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> torrent::SwarmStats {
         // code-review: consider splitting the function in two (command and query segregation).
         // `update_torrent_with_peer` and `get_stats`
 
-        let (stats, stats_updated) = self.torrents.update_torrent_with_peer_and_get_stats(info_hash, peer);
+        let (stats, stats_updated) = self.torrents.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
 
         // code-review: completed stat could be overwritten by an older task
         if self.config.persistent_torrent_completed_stat && stats_updated {
@@ -752,7 +752,7 @@ impl Tracker {
             torrents: 0,
         }));
 
-        let db = self.torrents.get_torrents().clone();
+        let db = self.torrents.get_torrents().await.clone();
 
         let futures = db
             .values()
@@ -784,8 +784,8 @@ impl Tracker {
     /// Remove inactive peers and (optionally) peerless torrents
     ///
     /// # Context: Tracker
-    pub fn cleanup_torrents(&self) {
-        let mut torrents_lock = self.torrents.get_torrents_mut();
+    pub async fn cleanup_torrents(&self) {
+        let mut torrents_lock = self.torrents.get_torrents_mut().await;
 
         // If we don't need to remove torrents we will use the faster iter
         if self.config.remove_peerless_torrents {
@@ -1788,11 +1788,11 @@ mod tests {
                 let mut peer = sample_peer();
 
                 peer.event = AnnounceEvent::Started;
-                let swarm_stats = tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer);
+                let swarm_stats = tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
                 assert_eq!(swarm_stats.completed, 0);
 
                 peer.event = AnnounceEvent::Completed;
-                let swarm_stats = tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer);
+                let swarm_stats = tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
                 assert_eq!(swarm_stats.completed, 1);
 
                 // Remove the newly updated torrent from memory
@@ -1800,7 +1800,7 @@ mod tests {
 
                 tracker.load_torrents_from_database().await.unwrap();
 
-                let torrents = tracker.torrents.get_torrents();
+                let torrents = tracker.torrents.get_torrents().await;
                 assert!(torrents.contains_key(&info_hash));
 
                 let torrent_entry = torrents.get(&info_hash).unwrap();

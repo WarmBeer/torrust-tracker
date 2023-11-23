@@ -35,10 +35,10 @@ fn main() {
         .build()
         .unwrap();
 
-    println!("{}: Avg/AdjAvg: {:?}", "add_one_torrent", add_one_torrent::<RepositorySync>(1_000_000));
-    println!("{}: Avg/AdjAvg: {:?}", "update_one_torrent_in_parallel", rt.block_on(update_one_torrent_in_parallel::<RepositorySync>(&rt, 10)));
-    println!("{}: Avg/AdjAvg: {:?}", "add_multiple_torrents_in_parallel", rt.block_on(add_multiple_torrents_in_parallel::<RepositorySync>(&rt, 10)));
-    println!("{}: Avg/AdjAvg: {:?}", "update_multiple_torrents_in_parallel", rt.block_on(update_multiple_torrents_in_parallel::<RepositorySync>(&rt, 10)));
+    println!("{}: Avg/AdjAvg: {:?}", "async_sync_add_one_torrent", rt.block_on(async_add_one_torrent::<RepositoryAsyncSync>(1_000_000)));
+    println!("{}: Avg/AdjAvg: {:?}", "async_sync_update_one_torrent_in_parallel", rt.block_on(async_update_one_torrent_in_parallel::<RepositoryAsyncSync>(&rt, 10)));
+    println!("{}: Avg/AdjAvg: {:?}", "async_sync_add_multiple_torrents_in_parallel", rt.block_on(async_add_multiple_torrents_in_parallel::<RepositoryAsyncSync>(&rt, 10)));
+    println!("{}: Avg/AdjAvg: {:?}", "async_sync_update_multiple_torrents_in_parallel", rt.block_on(async_update_multiple_torrents_in_parallel::<RepositoryAsyncSync>(&rt, 10)));
 
     if let Some(true) = args.compare {
         println!("");
@@ -50,17 +50,17 @@ fn main() {
 
         println!("");
 
-        println!("{}: Avg/AdjAvg: {:?}", "async_sync_add_one_torrent", rt.block_on(async_add_one_torrent::<RepositoryAsyncSync>(1_000_000)));
-        println!("{}: Avg/AdjAvg: {:?}", "async_sync_update_one_torrent_in_parallel", rt.block_on(async_update_one_torrent_in_parallel::<RepositoryAsyncSync>(&rt, 10)));
-        println!("{}: Avg/AdjAvg: {:?}", "async_sync_add_multiple_torrents_in_parallel", rt.block_on(async_add_multiple_torrents_in_parallel::<RepositoryAsyncSync>(&rt, 10)));
-        println!("{}: Avg/AdjAvg: {:?}", "async_sync_update_multiple_torrents_in_parallel", rt.block_on(async_update_multiple_torrents_in_parallel::<RepositoryAsyncSync>(&rt, 10)));
+        println!("{}: Avg/AdjAvg: {:?}", "add_one_torrent", add_one_torrent::<RepositorySync>(1_000_000));
+        println!("{}: Avg/AdjAvg: {:?}", "update_one_torrent_in_parallel", rt.block_on(update_one_torrent_in_parallel::<RepositorySync>(&rt, 10)));
+        println!("{}: Avg/AdjAvg: {:?}", "add_multiple_torrents_in_parallel", rt.block_on(add_multiple_torrents_in_parallel::<RepositorySync>(&rt, 10)));
+        println!("{}: Avg/AdjAvg: {:?}", "update_multiple_torrents_in_parallel", rt.block_on(update_multiple_torrents_in_parallel::<RepositorySync>(&rt, 10)));
 
         println!("");
 
-        println!("{}: Avg/AdjAvg: {:?}", "old_add_one_torrent", add_one_torrent::<RepositorySyncOld>(1_000_000));
-        println!("{}: Avg/AdjAvg: {:?}", "old_update_one_torrent_in_parallel", rt.block_on(update_one_torrent_in_parallel::<RepositorySyncOld>(&rt, 10)));
-        println!("{}: Avg/AdjAvg: {:?}", "old_add_multiple_torrents_in_parallel", rt.block_on(add_multiple_torrents_in_parallel::<RepositorySyncOld>(&rt, 10)));
-        println!("{}: Avg/AdjAvg: {:?}", "old_update_multiple_torrents_in_parallel", rt.block_on(update_multiple_torrents_in_parallel::<RepositorySyncOld>(&rt, 10)));
+        println!("{}: Avg/AdjAvg: {:?}", "single_lock_add_one_torrent", add_one_torrent::<RepositorySyncOld>(1_000_000));
+        println!("{}: Avg/AdjAvg: {:?}", "single_lock_update_one_torrent_in_parallel", rt.block_on(update_one_torrent_in_parallel::<RepositorySyncOld>(&rt, 10)));
+        println!("{}: Avg/AdjAvg: {:?}", "single_lock_add_multiple_torrents_in_parallel", rt.block_on(add_multiple_torrents_in_parallel::<RepositorySyncOld>(&rt, 10)));
+        println!("{}: Avg/AdjAvg: {:?}", "single_lock_update_multiple_torrents_in_parallel", rt.block_on(update_multiple_torrents_in_parallel::<RepositorySyncOld>(&rt, 10)));
     }
 }
 

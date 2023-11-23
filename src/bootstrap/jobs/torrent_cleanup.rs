@@ -44,7 +44,7 @@ pub fn start_job(config: &Arc<Configuration>, tracker: &Arc<tracker::Tracker>) -
                     if let Some(tracker) = weak_tracker.upgrade() {
                         let start_time = Utc::now().time();
                         info!("Cleaning up torrents..");
-                        tracker.cleanup_torrents();
+                        tracker.cleanup_torrents().await;
                         info!("Cleaned up torrents in: {}ms", (Utc::now().time() - start_time).num_milliseconds());
                     } else {
                         break;
