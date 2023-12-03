@@ -97,6 +97,7 @@
         "RUSTDOCFLAGS",
         "RUSTFLAGS",
         "rustfmt",
+        "rustlang",
         "Rustls",
         "Seedable",
         "serde",
