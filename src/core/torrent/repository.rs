@@ -304,7 +304,7 @@ impl RepositoryAsyncSingle {
 
 #[allow(clippy::module_name_repetitions)]
 pub struct RepositoryDashmap {
-    torrents: DashMap<InfoHash, Entry>,
+    pub torrents: DashMap<InfoHash, Entry>,
 }
 
 impl Repository for RepositoryDashmap {
