@@ -317,7 +317,7 @@ impl Repository for RepositoryDashmap {
     fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool) {
         let (stats, stats_updated) = {
             let mut torrent_entry = self.torrents.entry(*info_hash).or_default();
-            let stats_updated = torrent_entry.update_peer(peer);
+            let stats_updated = torrent_entry.insert_or_update_peer(peer);
             let stats = torrent_entry.get_stats();
 
             (stats, stats_updated)
